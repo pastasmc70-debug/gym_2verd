@@ -1,0 +1,29 @@
+{% extends "kiosco/base.html" %}
+{% block contenido %}
+<main class="kiosco" data-kiosco data-sonido="{{ 1 if sonido else 0 }}">
+  <h1>{{ gym_nombre }}</h1>
+  <p class="indicacion">Ingresá tu DNI y apretá Enter</p>
+  <form id="form-dni" method="post" action="{{ url_for('kiosco.ingreso') }}" autocomplete="off">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input class="dni" id="dni" name="dni" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8"
+           autocomplete="off" autofocus aria-label="DNI">
+  </form>
+  {% if teclado %}
+  <div class="teclado" aria-label="Teclado en pantalla">
+    {% for n in ['1','2','3','4','5','6','7','8','9'] %}<button type="button" data-tecla="{{ n }}">{{ n }}</button>{% endfor %}
+    <button type="button" data-tecla="borrar">⌫</button><button type="button" data-tecla="0">0</button>
+    <button type="button" class="enter" data-tecla="enter">✔</button>
+  </div>
+  {% endif %}
+  <form class="salir" method="post" action="{{ url_for('kiosco.salir') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Salir del kiosco</button>
+  </form>
+</main>
+<div id="resultado" class="resultado" hidden role="alert" aria-live="assertive">
+  <img id="r-foto" class="foto" alt="" hidden>
+  <div id="r-nombre" class="nombre"></div>
+  <div id="r-estado" class="estado"></div>
+  <div id="r-dias" class="dias"></div>
+  <div id="r-mensaje" class="mensaje"></div>
+</div>
+{% endblock %}

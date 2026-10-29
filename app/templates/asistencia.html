@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, badge_membresia %}
+{% block titulo %}Asistencia{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Asistencia · {{ hoy|fecha }}</h1>
+
+<div class="card shadow-sm mb-4"><div class="card-body">
+  <form method="post" action="{{ url_for('asistencia.ingreso') }}" class="row g-2 ingreso-form">
+    {{ csrf() }}
+    <div class="col-md-9"><input class="form-control" type="text" id="q" name="q" value="{{ q }}" placeholder="DNI o nombre del socio" autocomplete="off" autofocus></div>
+    <div class="col-md-3 d-grid"><button class="btn btn-dark btn-lg" type="submit">Registrar ingreso</button></div>
+  </form>
+</div></div>
+
+{% if tarjeta %}
+<div class="card shadow-sm mb-4 tarjeta-ingreso estado-{{ tarjeta.estado }}" id="tarjeta-ingreso" role="status">
+  <div class="card-body">
+    <div class="d-flex gap-3 align-items-center">
+      {% if tarjeta.foto %}
+        <img class="foto-tarjeta" src="{{ url_for('socios.foto', nombre=tarjeta.foto) }}" alt="Foto de {{ tarjeta.nombre }}">
+      {% else %}
+        <div class="foto-tarjeta sin-foto">{{ tarjeta.nombre[0]|upper }}</div>
+      {% endif %}
+      <div class="flex-grow-1 min-w-0">
+        <div class="text-success fw-semibold small">Ingreso registrado a las {{ tarjeta.hora }}</div>
+        <h2 class="h3 mb-1">{{ tarjeta.nombre }}</h2>
+        <div class="text-muted">DNI {{ tarjeta.dni }} · Plan {{ tarjeta.plan_nombre or 'sin plan' }}</div>
+        <div class="mt-2">
+          {{ badge_membresia(tarjeta.estado) }}
+          <span class="ms-1" id="tarjeta-dias">
+            {% if tarjeta.dias_restantes is none %}Sin plan asignado
+            {% elif tarjeta.dias_restantes == 0 %}Vence hoy ({{ tarjeta.vencimiento|fecha }})
+            {% elif tarjeta.dias_restantes > 0 %}Le quedan {{ tarjeta.dias_restantes }} día{{ 's' if tarjeta.dias_restantes != 1 }} (vence el {{ tarjeta.vencimiento|fecha }})
+            {% else %}Venció el {{ tarjeta.vencimiento|fecha }}{% endif %}
+          </span>
+        </div>
+        {% if tarjeta.saldo_centavos > 0 %}
+        <div class="alert alert-warning py-2 mt-3 mb-0" id="tarjeta-saldo">
+          Debe <strong>{{ tarjeta.saldo_centavos|pesos }}</strong> de la cuota.
+          <a class="alert-link" href="{{ url_for('pagos.nuevo', socio_id=tarjeta.id) }}">Registrar pago</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if candidatos %}
+<div class="card shadow-sm mb-4"><div class="card-body">
+  <h2 class="h6">Encontramos varios socios. ¿Quién es?</h2>
+  <div class="list-group">
+    {% for s in candidatos %}
+      <form method="post" action="{{ url_for('asistencia.ingreso') }}" class="list-group-item d-flex justify-content-between align-items-center">
+        {{ csrf() }}
+        <input type="hidden" name="socio_id" value="{{ s.id }}">
+        <span><strong>{{ s.nombre }}</strong> <span class="text-muted">· DNI {{ s.dni }}</span> {{ badge_membresia(s.estado_membresia, s.dias_restantes) }}</span>
+        <button class="btn btn-outline-dark btn-sm" type="submit">Registrar ingreso</button>
+      </form>
+    {% endfor %}
+  </div>
+</div></div>
+{% endif %}
+
+{% set entrada = '#q' %}
+{% include "socios/_selector.html" %}
+
+<h2 class="h5 mt-4">Ingresos de hoy ({{ ingresos|length }})</h2>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table align-middle mb-0">
+    <thead class="table-light"><tr><th>Hora</th><th>Socio</th><th>DNI</th><th>Registró</th></tr></thead>
+    <tbody>
+    {% for a in ingresos %}
+      <tr><td>{{ a.hora[:5] }}</td>
+          <td><a class="text-decoration-none" href="{{ url_for('socios.detalle', socio_id=a.socio_id) }}">{{ a.socio_nombre }}</a></td>
+          <td>{{ a.socio_dni }}</td><td>{{ a.registrado_por or '—' }}</td></tr>
+    {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-4">Todavía no hay ingresos registrados hoy.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

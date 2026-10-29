@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, clases %}
+{% block titulo %}Planes{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Planes</h1>
+  {% if es_admin %}<a class="btn btn-dark" href="{{ url_for('planes.nuevo') }}">Nuevo plan</a>{% endif %}
+</div>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table tabla-fija align-middle mb-0">
+    <thead class="table-light"><tr><th>Nombre</th><th>Precio mensual</th><th>Duración</th><th>Clases</th><th>Socios</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+    {% for p in planes %}
+      <tr>
+        <td class="fw-semibold">{{ p.nombre }}</td>
+        <td>{{ p.precio_centavos|pesos }}
+          {% if p.descuento_anual_tipo %}<div class="small text-muted">Anual: {{ p.descuento_anual_valor ~ '%' if p.descuento_anual_tipo == 'porcentaje' else p.descuento_anual_valor|pesos }} de descuento</div>{% endif %}</td>
+        <td>{{ p.duracion_dias }} días</td>
+        <td>{{ clases(p.clases_por_semana) }}</td>
+        <td>{{ p.socios }}</td>
+        <td>{% if p.activo %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Desactivado</span>{% endif %}</td>
+        <td class="text-end">
+          {% if es_admin %}
+          <a class="btn btn-outline-dark btn-sm" href="{{ url_for('planes.editar', plan_id=p.id) }}">Editar</a>
+          <form class="d-inline" method="post" action="{{ url_for('planes.activar_o_desactivar', plan_id=p.id, accion='desactivar' if p.activo else 'activar') }}">
+            {{ csrf() }}
+            <button class="btn btn-outline-secondary btn-sm" type="submit">{{ 'Desactivar' if p.activo else 'Activar' }}</button>
+          </form>
+          <form class="d-inline" method="post" action="{{ url_for('planes.eliminar', plan_id=p.id) }}"
+                onsubmit="return confirm('¿Eliminar el plan «{{ p.nombre|e }}»?');">
+            {{ csrf() }}
+            <button class="btn btn-outline-danger btn-sm" type="submit">Eliminar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">Todavía no hay planes. Creá el primero para poder asignarlo a los socios.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

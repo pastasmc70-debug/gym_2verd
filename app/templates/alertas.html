@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas{% endblock %}
+{% macro tabla(lista, vacio) %}
+  <div class="card shadow-sm mb-4"><div class="table-responsive">
+    <table class="table tabla-fija align-middle mb-0">
+      <thead class="table-light"><tr><th>Socio</th><th>Teléfono</th><th>Plan</th><th>Vencimiento</th><th></th></tr></thead>
+      <tbody>
+      {% for s in lista %}
+        <tr>
+          <td><a class="fw-semibold text-decoration-none" href="{{ url_for('socios.detalle', socio_id=s.id) }}">{{ s.nombre }}</a></td>
+          <td>{{ s.telefono }}</td>
+          <td>{{ s.plan_nombre }}</td>
+          <td>
+            {{ s.fecha_vencimiento|fecha }}
+            <span class="text-muted small">
+              {% if s.dias_restantes < 0 %}(hace {{ -s.dias_restantes }} {{ 'día' if s.dias_restantes == -1 else 'días' }})
+              {% elif s.dias_restantes == 0 %}(hoy){% else %}(en {{ s.dias_restantes }} {{ 'día' if s.dias_restantes == 1 else 'días' }}){% endif %}
+            </span>
+          </td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-success btn-sm" href="{{ s.whatsapp }}" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="btn btn-outline-dark btn-sm" href="{{ url_for('pagos.nuevo', socio_id=s.id) }}">Registrar pago</a>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">{{ vacio }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+{% endmacro %}
+{% block contenido %}
+<h1 class="h3 mb-3">Alertas de cobranza</h1>
+<h2 class="h5 text-danger">Cuota vencida ({{ vencidos|length }})</h2>
+{{ tabla(vencidos, 'No hay socios con la cuota vencida. ¡Muy bien!') }}
+<h2 class="h5 text-warning-emphasis">Por vencer en los próximos {{ dias_alerta }} días ({{ por_vencer|length }})</h2>
+{{ tabla(por_vencer, 'No hay cuotas por vencer en estos días.') }}
+<p class="text-muted small">Solo se listan socios en estado activo. El botón de WhatsApp abre el chat con el mensaje ya escrito; vos decidís si lo enviás.</p>
+{% endblock %}

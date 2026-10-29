@@ -1,0 +1,32 @@
+/* Modo kiosco: pensado para leerse desde 1 metro. No usa CDN (tiene que andar sin internet). */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #111827; color: #f9fafb; }
+.kiosco { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; padding: 2rem; gap: 1.5rem; }
+.kiosco h1 { font-size: clamp(2rem, 5vw, 4rem); margin: 0; font-weight: 700; }
+.indicacion { font-size: clamp(1.6rem, 4vw, 3.2rem); margin: 0; color: #d1d5db; }
+.dni { width: min(90vw, 24ch); font-size: clamp(3rem, 9vw, 7rem); text-align: center; letter-spacing: .15em;
+       padding: .3em .2em; border: .08em solid #6b7280; border-radius: .2em; background: #1f2937; color: #fff; }
+.dni:focus { outline: none; border-color: #fbbf24; box-shadow: 0 0 0 .1em #fbbf24; }
+.teclado { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; width: min(90vw, 26rem); }
+.teclado button { font-size: 2.4rem; padding: .7rem 0; border-radius: .4rem; border: 0; background: #374151; color: #fff; }
+.teclado button:active { background: #4b5563; }
+.teclado .enter { background: #16a34a; }
+.salir { position: fixed; right: .6rem; bottom: .4rem; opacity: .35; font-size: .8rem; }
+.salir button { background: none; border: 0; color: #9ca3af; cursor: pointer; }
+
+.resultado { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+             gap: 1rem; text-align: center; padding: 2rem; z-index: 10; color: #fff; }
+.resultado[hidden] { display: none; }
+.resultado.ok { background: #15803d; }
+.resultado.no { background: #b91c1c; }
+.resultado .foto { width: min(30vh, 40vw); height: min(30vh, 40vw); border-radius: 50%; object-fit: cover; border: .4rem solid #fff; }
+.resultado .nombre { font-size: clamp(2.6rem, 8vw, 6.5rem); font-weight: 800; line-height: 1.05; }
+.resultado .estado { font-size: clamp(2rem, 6vw, 4.5rem); font-weight: 700; }
+.resultado .dias { font-size: clamp(1.8rem, 5vw, 4rem); }
+.resultado .mensaje { font-size: clamp(1.8rem, 5vw, 4rem); font-weight: 600; }
+.entrar { max-width: 28rem; width: 100%; }
+.entrar input { width: 100%; font-size: 1.6rem; padding: .6rem; margin: .8rem 0; border-radius: .3rem; border: 1px solid #6b7280; }
+.entrar button.principal { width: 100%; font-size: 1.4rem; padding: .7rem; border: 0; border-radius: .3rem; background: #2563eb; color: #fff; }
+.error { background: #7f1d1d; padding: .6rem 1rem; border-radius: .3rem; }

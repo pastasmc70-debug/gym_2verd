@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Venta #{{ venta.id }}{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Venta #{{ venta.id }} {% if venta.anulada %}<span class="badge text-bg-secondary">Anulada</span>{% endif %}</h1>
+{% include "tienda/_menu.html" %}
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Fecha</dt><dd class="col-sm-9">{{ venta.fecha|fecha }} {{ venta.hora[:5] }}</dd>
+    <dt class="col-sm-3">Socio</dt><dd class="col-sm-9">{{ venta.socio_nombre or 'Venta de mostrador' }}</dd>
+    <dt class="col-sm-3">Pagó con</dt><dd class="col-sm-9">{{ venta.metodo|capitalize }}</dd>
+    <dt class="col-sm-3">Cargó</dt><dd class="col-sm-9">{{ venta.cargada_por or '—' }}</dd>
+    <dt class="col-sm-3">Total</dt><dd class="col-sm-9 fw-bold">{{ venta.total_centavos|pesos }}</dd>
+    {% if venta.anulada %}
+    <dt class="col-sm-3">Anulada</dt><dd class="col-sm-9">{{ venta.anulada_en[:10]|fecha }} por {{ venta.anulada_por }}. Motivo: {{ venta.anulada_motivo }}</dd>
+    {% endif %}
+  </dl>
+</div></div>
+<div class="card shadow-sm mb-3"><div class="table-responsive"><table class="table mb-0">
+  <thead class="table-light"><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+  <tbody>{% for i in items %}<tr><td>{{ i.nombre_producto }}</td><td>{{ i.cantidad }}</td><td>{{ i.precio_unitario_centavos|pesos }}</td><td>{{ (i.cantidad * i.precio_unitario_centavos)|pesos }}</td></tr>{% endfor %}</tbody>
+</table></div></div>
+<div class="d-flex gap-2">
+  <a class="btn btn-outline-secondary" href="{{ url_for('tienda.ventas', fecha=venta.fecha) }}">Volver</a>
+  {% if es_admin and not venta.anulada %}<a class="btn btn-outline-danger" href="{{ url_for('tienda.anular_venta', venta_id=venta.id) }}">Anular venta</a>{% endif %}
+</div>
+{% endblock %}

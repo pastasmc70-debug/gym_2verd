@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Más vendidos{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Tienda</h1>
+{% include "tienda/_menu.html" %}
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form class="d-flex flex-wrap gap-2 mb-3" method="get">
+  <label class="col-form-label-sm" for="desde">Desde</label><input class="form-control form-control-sm w-auto" type="date" id="desde" name="desde" value="{{ desde.isoformat() }}" max="{{ hoy.isoformat() }}">
+  <label class="col-form-label-sm" for="hasta">Hasta</label><input class="form-control form-control-sm w-auto" type="date" id="hasta" name="hasta" value="{{ hasta.isoformat() }}" max="{{ hoy.isoformat() }}">
+  <button class="btn btn-dark btn-sm" type="submit">Ver</button>
+</form>
+<p class="text-muted">Del {{ desde|fecha }} al {{ hasta|fecha }}. Las ventas anuladas no cuentan.</p>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table mb-0">
+  <thead class="table-light"><tr><th>#</th><th>Producto</th><th>Unidades</th><th>Importe</th><th>Ganancia</th></tr></thead>
+  <tbody>{% for r in ranking %}
+    <tr><td>{{ loop.index }}</td><td class="fw-semibold">{{ r.nombre }}{% if r.marca %} <span class="text-muted fw-normal">({{ r.marca }})</span>{% endif %}</td>
+    <td>{{ r.unidades }}</td><td>{{ r.importe_centavos|pesos }}</td><td>{{ r.ganancia_centavos|pesos if r.ganancia_centavos is not none else 'Sin costo cargado' }}</td></tr>
+  {% else %}<tr><td colspan="5" class="text-center text-muted py-4">No hubo ventas en ese período.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

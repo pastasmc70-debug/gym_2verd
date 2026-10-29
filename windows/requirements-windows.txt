@@ -1,0 +1,4 @@
+# Solo para CONSTRUIR el instalador de Windows (no hace falta para usar el sistema con `python run.py`).
+# Se instala además de requirements.txt:  pip install -r requirements.txt -r windows/requirements-windows.txt
+pyinstaller==6.11.1    # empaqueta la app en un .exe que no necesita Python instalado
+pywebview==5.3.2       # ventana propia sin barra de navegador (usa WebView2 de Windows)

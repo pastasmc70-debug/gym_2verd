@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Tienda{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Tienda</h1>
+{% include "tienda/_menu.html" %}
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post" class="card shadow-sm"><div class="card-body">
+  {{ csrf() }}
+  <div class="table-responsive mb-3"><table class="table align-middle mb-0">
+    <thead class="table-light"><tr><th>Producto</th><th>Precio</th><th>Stock</th><th style="width:8rem">Cantidad</th></tr></thead>
+    <tbody>
+    {% for p in productos %}
+      <tr class="{{ 'text-muted' if p.stock == 0 }}">
+        <td class="fw-semibold">{{ p.nombre }}{% if p.marca %} <span class="text-muted fw-normal">({{ p.marca }})</span>{% endif %}</td>
+        <td>{{ p.precio_centavos|pesos }}</td>
+        <td>{% if p.stock == 0 %}<span class="badge text-bg-danger">Sin stock</span>{% else %}{{ p.stock }}{% if p.stock <= p.stock_minimo %} <span class="badge text-bg-warning">Poco</span>{% endif %}{% endif %}</td>
+        <td><input class="form-control form-control-sm" type="number" min="0" step="1" inputmode="numeric" name="cant_{{ p.id }}" value="{{ cantidades.get(p.id, '') }}" {{ 'disabled' if p.stock == 0 }}></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-4">Todavía no hay productos para vender.{% if es_admin %} <a href="{{ url_for('tienda.producto_nuevo') }}">Cargá el primero</a>.{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label" for="metodo">Cómo pagó <span class="text-danger">*</span></label>
+      <select class="form-select" id="metodo" name="metodo">
+        {% for m in METODOS_PAGO %}<option value="{{ m }}" {{ 'selected' if m == metodo }}>{{ m|capitalize }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" for="socio_dni">DNI del socio (opcional)</label>
+      <input class="form-control" id="socio_dni" name="socio_dni" inputmode="numeric" value="{{ dni }}">
+      <div class="form-text" id="socio-elegido">Dejalo vacío para una venta de mostrador, o elegí un socio de la lista de abajo.</div>
+    </div>
+    <div class="col-md-4 d-flex align-items-end"><button class="btn btn-dark w-100" type="submit">Registrar venta</button></div>
+  </div>
+</div></form>
+
+<div class="card shadow-sm mt-4"><div class="card-body">
+  <h2 class="h6">Venta a un socio (opcional)</h2>
+  <input class="form-control" id="buscar_socio" type="search" placeholder="Buscar socio por nombre o DNI" autocomplete="off">
+  {% set entrada = '#buscar_socio' %}
+  {% include "socios/_selector.html" %}
+</div></div>
+{% endblock %}

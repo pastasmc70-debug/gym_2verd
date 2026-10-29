@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, campo %}
+{% block titulo %}Configuración{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Configuración</h1>
+<p class="text-muted">Lo que guardes acá manda sobre las variables de entorno <code>GYM_*</code>, que siguen funcionando como alternativa mientras no cambies el valor desde esta pantalla.</p>
+<form method="post" novalidate>
+  {{ csrf() }}
+  <div class="row g-4">
+    <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6">General</h2>
+      {{ campo('gym_nombre', 'Nombre del gimnasio', valores, errores, requerido=True, atributos='maxlength="60"') }}
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="modulo_tienda" name="modulo_tienda" value="1" {{ 'checked' if valores.modulo_tienda }}>
+        <label class="form-check-label" for="modulo_tienda">Tienda de suplementos</label>
+      </div>
+      <div class="form-text">Apagarla no borra nada: productos y ventas quedan guardados.</div>
+    </div></div></div>
+
+    <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h6">Reglas de ingreso</h2>
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="acceso_sin_pago" name="acceso_sin_pago" value="1" {{ 'checked' if valores.acceso_sin_pago }}>
+        <label class="form-check-label" for="acceso_sin_pago">Dejar entrar a quien tiene plan pero todavía no pagó</label>
+      </div>
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" role="switch" id="permitir_reingreso" name="permitir_reingreso" value="1" {{ 'checked' if valores.permitir_reingreso }}>
+        <label class="form-check-label" for="permitir_reingreso">Permitir más de un ingreso por día</label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="limitar_clases_semana" name="limitar_clases_semana" value="1" {{ 'checked' if valores.limitar_clases_semana }}>
+        <label class="form-check-label" for="limitar_clases_semana">Rechazar el ingreso cuando se agotaron las clases de la semana</label>
+      </div>
+    </div></div></div>
+
+    <div class="col-12"><div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Panel: «Adentro ahora (aprox.)»</h2>
+      <div class="row"><div class="col-md-4">
+        {{ campo('horas_adentro', 'Horas que se considera que alguien sigue adentro', valores, errores, tipo='number', requerido=True, ayuda='Es una estimación: no se registra la salida. Se cuenta a quien ingresó en las últimas N horas (de 1 a 12).', atributos='min="1" max="12"') }}
+      </div></div>
+    </div></div></div>
+
+    <div class="col-12"><div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Modo kiosco (pantalla de ingreso por DNI)</h2>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="kiosco_sonido" name="kiosco_sonido" value="1" {{ 'checked' if valores.kiosco_sonido }}>
+            <label class="form-check-label" for="kiosco_sonido">Pitido de aceptado / rechazado</label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="kiosco_teclado" name="kiosco_teclado" value="1" {{ 'checked' if valores.kiosco_teclado }}>
+            <label class="form-check-label" for="kiosco_teclado">Teclado numérico en pantalla (tablets)</label>
+          </div>
+          <p class="form-text mt-2 mb-0">{% if kiosco_con_clave %}Ya hay una clave de kiosco configurada.{% else %}Todavía no hay clave de kiosco: sin ella no se puede activar.{% endif %}</p>
+        </div>
+        <div class="col-md-6">
+          {{ campo('kiosco_clave', 'Clave del kiosco' ~ (' (nueva)' if kiosco_con_clave else ''), {}, errores, tipo='password', ayuda='Dejala vacía para no cambiarla. Mínimo ' ~ CLAVE_MIN ~ ' caracteres. Es distinta de la del administrador.', atributos='autocomplete="new-password"') }}
+          {{ campo('kiosco_clave_confirmacion', 'Repetí la clave del kiosco', {}, errores, tipo='password', atributos='autocomplete="new-password"') }}
+        </div>
+      </div>
+    </div></div></div>
+
+    <div class="col-12"><div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Copia de seguridad automática</h2>
+      {{ campo('backup_carpeta', 'Carpeta donde guardar las copias', valores, errores,
+               ayuda='Ruta completa, por ejemplo D:\\Copias o la carpeta de Google Drive / OneDrive (o un pendrive). Se hace una copia por día y se conservan las últimas 14. Dejala vacía para apagar la copia automática.',
+               atributos='autocomplete="off"') }}
+      <div class="small {{ 'text-danger' if copia.nivel == 'peligro' else 'text-muted' }}" id="estado-copia">
+        {% if copia.ultima %}Última copia: {{ copia.ultima.strftime('%d/%m/%Y %H:%M') }}.{% else %}Todavía no se hizo ninguna copia.{% endif %}
+        {% if copia.mensaje and copia.carpeta %}{{ copia.mensaje }}{% endif %}
+      </div>
+    </div></div></div>
+  </div>
+  <button class="btn btn-dark mt-4" type="submit">Guardar</button>
+</form>
+{% endblock %}

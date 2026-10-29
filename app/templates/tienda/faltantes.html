@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Faltantes{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Tienda</h1>
+{% include "tienda/_menu.html" %}
+<p class="text-muted">Productos activos con stock igual o menor al mínimo: lo que hay que reponer.</p>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table tabla-fija align-middle mb-0">
+  <thead class="table-light"><tr><th>Producto</th><th>Stock</th><th>Mínimo</th><th></th></tr></thead>
+  <tbody>{% for p in productos %}
+    <tr><td class="fw-semibold">{{ p.nombre }}{% if p.marca %} <span class="text-muted fw-normal">({{ p.marca }})</span>{% endif %}</td>
+    <td>{% if p.stock == 0 %}<span class="badge text-bg-danger">Agotado</span>{% else %}{{ p.stock }}{% endif %}</td><td>{{ p.stock_minimo }}</td>
+    <td class="text-end"><a class="btn btn-outline-dark btn-sm" href="{{ url_for('tienda.stock', producto_id=p.id) }}">Cargar entrada</a></td></tr>
+  {% else %}<tr><td colspan="4" class="text-center text-muted py-4">No falta nada: todo está por encima del mínimo.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% endblock %}

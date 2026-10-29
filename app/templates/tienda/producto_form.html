@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, csrf %}
+{% block titulo %}{{ 'Editar producto' if producto else 'Nuevo producto' }}{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">{{ 'Editar producto' if producto else 'Nuevo producto' }}</h1>
+<form method="post" class="card shadow-sm" novalidate><div class="card-body">
+  {{ csrf() }}
+  <div class="row">
+    <div class="col-md-6">{{ campo('nombre', 'Nombre', valores, errores, requerido=True, atributos='maxlength="80"') }}</div>
+    <div class="col-md-6">{{ campo('marca', 'Marca', valores, errores, atributos='maxlength="60"') }}</div>
+    <div class="col-md-6">{{ campo('categoria', 'Categoría', valores, errores, atributos='maxlength="60" list="categorias"') }}
+      <datalist id="categorias">{% for c in categorias %}<option value="{{ c }}">{% endfor %}</datalist></div>
+    <div class="col-md-6">{{ campo('stock_minimo', 'Stock mínimo (avisa cuando llega a este número)', valores, errores, tipo='number', requerido=True, atributos='min="0" step="1"') }}</div>
+    <div class="col-md-4">{{ campo('precio', 'Precio de venta (ARS)', valores, errores, requerido=True, atributos='inputmode="decimal"') }}</div>
+    <div class="col-md-4">{{ campo('costo', 'Costo (opcional)', valores, errores, atributos='inputmode="decimal"', ayuda='Sirve para calcular la ganancia.') }}</div>
+    {% if not producto %}
+    <div class="col-md-4">{{ campo('stock', 'Stock inicial', valores, errores, tipo='number', atributos='min="0" step="1"') }}</div>
+    {% endif %}
+  </div>
+  {% if producto %}<p class="text-muted small">El stock actual ({{ producto.stock }}) se cambia desde «Stock», con un motivo.</p>{% endif %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-dark" type="submit">Guardar</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('tienda.productos') }}">Cancelar</a>
+  </div>
+</div></form>
+{% endblock %}

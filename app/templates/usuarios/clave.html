@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, csrf %}
+{% block titulo %}Cambiar clave{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Cambiar la clave de «{{ cuenta.usuario }}»</h1>
+<p class="text-muted">Si esa persona tiene la sesión abierta, se le cierra y tiene que ingresar con la clave nueva.</p>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" novalidate autocomplete="off">
+    {{ csrf() }}
+    <div class="row">
+      <div class="col-md-6">{{ campo('clave', 'Clave nueva', {}, errores, tipo='password', requerido=True, ayuda='Mínimo 10 caracteres.', atributos='autocomplete="new-password"') }}</div>
+      <div class="col-md-6">{{ campo('clave2', 'Repetir la clave', {}, errores, tipo='password', requerido=True, atributos='autocomplete="new-password"') }}</div>
+    </div>
+    <button class="btn btn-dark" type="submit">Guardar clave</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('usuarios.lista') }}">Cancelar</a>
+  </form>
+</div></div>
+{% endblock %}

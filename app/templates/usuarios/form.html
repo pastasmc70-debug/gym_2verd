@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, csrf %}
+{% block titulo %}Nuevo usuario{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Nuevo usuario de recepción</h1>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" novalidate autocomplete="off">
+    {{ csrf() }}
+    <div class="row">
+      <div class="col-md-4">{{ campo('usuario', 'Usuario', valores, errores, requerido=True, ayuda='3 a 30 caracteres: letras sin tildes, números, punto, guion o guion bajo.', atributos='autocapitalize="none" autocomplete="off"') }}</div>
+      <div class="col-md-4">{{ campo('clave', 'Clave', {}, errores, tipo='password', requerido=True, ayuda='Mínimo 10 caracteres.', atributos='autocomplete="new-password"') }}</div>
+      <div class="col-md-4">{{ campo('clave2', 'Repetir la clave', {}, errores, tipo='password', requerido=True, atributos='autocomplete="new-password"') }}</div>
+    </div>
+    <button class="btn btn-dark" type="submit">Crear usuario</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('usuarios.lista') }}">Cancelar</a>
+  </form>
+</div></div>
+{% endblock %}

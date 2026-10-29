@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Anular venta{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Anular venta #{{ venta.id }}</h1>
+<p class="text-muted">La venta no se borra: queda marcada como anulada con el motivo y quién la anuló, y el stock vuelve al inventario.</p>
+{% if venta.anulada %}
+  <div class="alert alert-secondary">Esta venta ya fue anulada el {{ venta.anulada_en[:10]|fecha }} por {{ venta.anulada_por }}. Motivo: {{ venta.anulada_motivo }}</div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('tienda.detalle_venta', venta_id=venta.id) }}">Volver</a>
+{% else %}
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <p class="mb-2">{{ venta.fecha|fecha }} {{ venta.hora[:5] }} · {{ venta.metodo|capitalize }} · <strong>{{ venta.total_centavos|pesos }}</strong></p>
+  <ul class="mb-0">{% for i in items %}<li>{{ i.cantidad }} × {{ i.nombre_producto }}</li>{% endfor %}</ul>
+</div></div>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post" class="card shadow-sm"><div class="card-body">
+  {{ csrf() }}
+  <div class="mb-3">
+    <label class="form-label" for="motivo">Motivo de la anulación <span class="text-danger">*</span></label>
+    <textarea class="form-control {{ 'is-invalid' if error }}" id="motivo" name="motivo" rows="2" maxlength="300" required>{{ motivo }}</textarea>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-danger" type="submit" onclick="return confirm('¿Seguro que querés anular esta venta? No se puede deshacer.');">Confirmar anulación</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('tienda.detalle_venta', venta_id=venta.id) }}">Cancelar</a>
+  </div>
+</div></form>
+{% endif %}
+{% endblock %}

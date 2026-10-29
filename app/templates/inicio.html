@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-baseline mb-3">
+  <h1 class="h3 mb-0">Panel de inicio</h1>
+  <span class="text-muted">{{ hoy|fecha }}</span>
+</div>
+
+<div class="row g-3">
+  <div class="col-6 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm"><div class="card-body">
+      <a href="{{ url_for('socios.lista', estado='activo') }}">
+        <div class="text-muted small">Socios activos</div>
+        <div class="numero">{{ datos.socios_activos }}</div>
+      </a>
+    </div></div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm"><div class="card-body">
+      <a href="{{ url_for('pagos.lista') }}">
+        <div class="text-muted small">Ingresos del mes</div>
+        <div class="numero">{{ datos.ingresos_mes_centavos|pesos }}</div>
+      </a>
+    </div></div>
+  </div>
+  {% if tienda_mes is not none %}
+  <div class="col-6 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm"><div class="card-body">
+      <a href="{{ url_for('tienda.ventas') }}">
+        <div class="text-muted small">Tienda del mes</div>
+        <div class="numero">{{ tienda_mes|pesos }}</div>
+      </a>
+    </div></div>
+  </div>
+  {% endif %}
+  <div class="col-6 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm border-warning"><div class="card-body">
+      <a href="{{ url_for('alertas.lista') }}">
+        <div class="text-muted small">Por vencer ({{ dias_alerta }} días)</div>
+        <div class="numero text-warning-emphasis">{{ datos.por_vencer }}</div>
+      </a>
+    </div></div>
+  </div>
+  <div class="col-6 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm border-danger"><div class="card-body">
+      <a href="{{ url_for('alertas.lista') }}">
+        <div class="text-muted small">Vencidos</div>
+        <div class="numero text-danger">{{ datos.vencidos }}</div>
+      </a>
+    </div></div>
+  </div>
+  <div class="col-12 col-lg">
+    <div class="card tarjeta-dato h-100 shadow-sm"><div class="card-body">
+      <a href="{{ url_for('asistencia.pantalla') }}">
+        <div class="text-muted small">Asistencias de hoy</div>
+        <div class="numero">{{ datos.asistencias_hoy }}</div>
+      </a>
+    </div></div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-3" id="adentro-ahora"><div class="card-body">
+  <div class="d-flex justify-content-between align-items-baseline flex-wrap gap-1">
+    <h2 class="h6 mb-0">Adentro ahora (aprox.): <span class="fw-bold">{{ adentro|length }}</span></h2>
+    <span class="text-muted small">Estimado: ingresaron en las últimas {{ horas_adentro }} {{ 'hora' if horas_adentro == 1 else 'horas' }}. No se registra la salida.</span>
+  </div>
+  {% if adentro %}
+  <ul class="list-inline mb-0 mt-2 small">
+    {% for s in adentro[:30] %}<li class="list-inline-item"><a href="{{ url_for('socios.detalle', socio_id=s.socio_id) }}">{{ s.nombre }}</a> <span class="text-muted">({{ s.hora }})</span></li>{% endfor %}
+    {% if adentro|length > 30 %}<li class="list-inline-item text-muted">y {{ adentro|length - 30 }} más</li>{% endif %}
+  </ul>
+  {% else %}<p class="text-muted small mb-0 mt-2">No hay ingresos en las últimas {{ horas_adentro }} {{ 'hora' if horas_adentro == 1 else 'horas' }}.</p>{% endif %}
+</div></div>
+
+{% if copia %}
+<div class="mt-4" id="copia-seguridad">
+  {% if copia.nivel != 'ok' %}
+    <div class="alert alert-{{ 'danger' if copia.nivel == 'peligro' else 'warning' }} mb-0" role="alert">
+      <strong>Copia de seguridad:</strong> {{ copia.mensaje }}
+      {% if copia.ultima %}Última copia: {{ copia.ultima.strftime('%d/%m/%Y %H:%M') }}.{% endif %}
+      <a class="alert-link" href="{{ url_for('configuracion.pantalla') }}">Ir a Configuración</a>
+    </div>
+  {% else %}
+    <div class="text-muted small">Última copia de seguridad: {{ copia.ultima.strftime('%d/%m/%Y %H:%M') }}</div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="d-flex flex-wrap gap-2 mt-4">
+  <a class="btn btn-dark" href="{{ url_for('asistencia.pantalla') }}">Registrar ingreso</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('pagos.nuevo') }}">Registrar pago</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('socios.nuevo') }}">Nuevo socio</a>
+  <a class="btn btn-outline-dark" href="{{ url_for('alertas.lista') }}">Ver alertas de cobranza</a>
+</div>
+{% endblock %}

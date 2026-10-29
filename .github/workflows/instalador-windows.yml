@@ -1,0 +1,59 @@
+name: Instalador de Windows
+
+# Se ejecuta a mano (Actions → "Instalador de Windows" → Run workflow) o al subir una etiqueta v*.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  instalador:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            windows/requirements-windows.txt
+
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt -r windows/requirements-windows.txt
+
+      - name: Tests
+        run: python -m pytest -q -o addopts=""
+        timeout-minutes: 10
+
+      - name: Leer la versión
+        id: version
+        shell: pwsh
+        run: |
+          $v = (python -c "from app.version import __version__; print(__version__)").Trim()
+          "valor=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Armar el programa con PyInstaller
+        run: pyinstaller windows/gimnasio.spec --noconfirm
+
+      - name: Autocomprobación del .exe (arranca, pide la pantalla inicial y sale)
+        shell: pwsh
+        run: |
+          $env:GYM_DATA_DIR = "$env:RUNNER_TEMP\datos-prueba"
+          $p = Start-Process -FilePath dist\GestionGimnasio\GestionGimnasio.exe -ArgumentList "--autocomprobar" -Wait -PassThru
+          $resultado = Get-Content "$env:GYM_DATA_DIR\registros\autocomprobacion.txt" -ErrorAction SilentlyContinue
+          Write-Host $resultado
+          if ($p.ExitCode -ne 0 -or $resultado -notmatch "OK") { throw "La autocomprobación del .exe falló (código $($p.ExitCode))" }
+
+      - name: Instalar Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Armar el instalador
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=${{ steps.version.outputs.valor }}" windows\instalador.iss'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GestionGimnasio-Instalador-${{ steps.version.outputs.valor }}
+          path: windows/Salida/GestionGimnasio-Instalador-*.exe
+          if-no-files-found: error

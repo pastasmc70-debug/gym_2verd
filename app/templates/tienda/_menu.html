@@ -1,0 +1,10 @@
+{% set ep = request.endpoint %}
+<ul class="nav nav-pills mb-3 flex-wrap">
+  <li class="nav-item"><a class="nav-link {{ 'active' if ep == 'tienda.nueva_venta' }}" href="{{ url_for('tienda.nueva_venta') }}">Vender</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if ep in ('tienda.ventas', 'tienda.detalle_venta', 'tienda.anular_venta') }}" href="{{ url_for('tienda.ventas') }}">Ventas del día</a></li>
+  {% if es_admin %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if ep in ('tienda.productos', 'tienda.producto_nuevo', 'tienda.producto_editar', 'tienda.stock') }}" href="{{ url_for('tienda.productos') }}">Productos y stock</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if ep == 'tienda.faltantes' }}" href="{{ url_for('tienda.faltantes') }}">Faltantes</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if ep == 'tienda.mas_vendidos' }}" href="{{ url_for('tienda.mas_vendidos') }}">Más vendidos</a></li>
+  {% endif %}
+</ul>

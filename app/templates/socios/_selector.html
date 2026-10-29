@@ -1,0 +1,17 @@
+{# Lista de socios para elegir con un clic. Variables: sel (ver routes/socios.py: contexto_selector) y
+   entrada (selector CSS del buscador que la filtra mientras se escribe). Solo se incluye en pantallas del personal. #}
+<section class="selector mt-3" data-selector data-url="{{ url_for('socios.selector_lista') }}"
+         data-destino="{{ sel.destino }}" data-orden-inicial="{{ sel.orden }}" data-base-url="{{ sel.base_url }}"
+         {% if entrada %}data-input="{{ entrada }}"{% endif %}>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+    <h2 class="h6 mb-0">Elegí un socio</h2>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Orden de la lista">
+      <a class="btn btn-outline-secondary {{ 'active' if sel.orden == 'prioridad' }}" data-orden="prioridad"
+         href="{{ sel.base_url }}?{{ {'q': sel.q, 'orden': 'prioridad'}|urlencode }}">Vencidos primero</a>
+      <a class="btn btn-outline-secondary {{ 'active' if sel.orden == 'alfabetico' }}" data-orden="alfabetico"
+         href="{{ sel.base_url }}?{{ {'q': sel.q, 'orden': 'alfabetico'}|urlencode }}">Solo A–Z</a>
+    </div>
+  </div>
+  <div class="selector-lista" aria-live="polite">{% include "socios/_selector_lista.html" %}</div>
+</section>
+<script src="{{ url_for('static', filename='js/selector.js') }}" defer></script>

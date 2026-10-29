@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block titulo %}Ventas de la tienda{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Tienda</h1>
+{% include "tienda/_menu.html" %}
+<form class="d-flex gap-2 mb-3" method="get">
+  <input class="form-control form-control-sm w-auto" type="date" name="fecha" value="{{ fecha.isoformat() }}" max="{{ hoy.isoformat() }}">
+  <button class="btn btn-dark btn-sm" type="submit">Ver</button>
+</form>
+<div class="alert alert-light border">
+  <strong>Total del {{ fecha|fecha }}: {{ caja.total_centavos|pesos }}</strong> · {{ caja.cantidad }} venta{{ '' if caja.cantidad == 1 else 's' }}
+  {% if caja.anuladas %}· {{ caja.anuladas }} anulada{{ '' if caja.anuladas == 1 else 's' }} (no suman){% endif %}<br>
+  {% for m, monto in caja.por_metodo.items() %}{{ m|capitalize }}: {{ monto|pesos }}{{ ' · ' if not loop.last }}{% endfor %}
+</div>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table align-middle mb-0">
+  <thead class="table-light"><tr><th>Hora</th><th>Socio</th><th>Unidades</th><th>Método</th><th>Total</th><th>Cargó</th><th></th></tr></thead>
+  <tbody>
+  {% for v in caja.ventas %}
+    <tr class="{{ 'text-decoration-line-through text-muted' if v.anulada }}">
+      <td>{{ v.hora[:5] }}</td><td>{{ v.socio_nombre or 'Mostrador' }}</td><td>{{ v.unidades }}</td>
+      <td>{{ v.metodo|capitalize }}</td><td>{{ v.total_centavos|pesos }}</td><td>{{ v.cargada_por or '—' }}</td>
+      <td class="text-end">{% if v.anulada %}<span class="badge text-bg-secondary">Anulada</span> {% endif %}<a class="btn btn-outline-dark btn-sm" href="{{ url_for('tienda.detalle_venta', venta_id=v.id) }}">Ver</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="text-center text-muted py-4">No hay ventas ese día.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

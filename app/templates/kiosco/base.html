@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Ingreso{% endblock %} · {{ gym_nombre }}</title>
+  <link href="{{ url_for('static', filename='css/kiosco.css') }}" rel="stylesheet">
+</head>
+<body>
+{% block contenido %}{% endblock %}
+<script src="{{ url_for('static', filename='js/kiosco.js') }}"></script>
+</body>
+</html>

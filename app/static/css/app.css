@@ -1,0 +1,40 @@
+.tarjeta-dato .card-body { container-type: inline-size; }
+/* El monto nunca se parte en varias líneas: la letra se achica según el ancho de la tarjeta (hasta 2.2rem). */
+.tarjeta-dato .numero { font-size: clamp(0.9rem, 5vw, 2.2rem); font-size: clamp(0.8rem, 14cqw, 2.2rem); font-weight: 700; line-height: 1.1; white-space: nowrap; }
+.tarjeta-dato a { text-decoration: none; color: inherit; }
+.foto-socio { width: 96px; height: 96px; object-fit: cover; border-radius: 50%; }
+.foto-mini { width: 36px; height: 36px; object-fit: cover; border-radius: 50%; }
+.sin-foto { width: 96px; height: 96px; border-radius: 50%; background: #dee2e6; color: #6c757d;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 600; }
+.foto-tarjeta { width: 120px; height: 120px; object-fit: cover; border-radius: 50%; flex-shrink: 0; }
+.foto-tarjeta.sin-foto { font-size: 3rem; }
+.tarjeta-ingreso { border-left: .5rem solid #198754; }
+.tarjeta-ingreso.estado-por_vencer { border-left-color: #ffc107; }
+.min-w-0 { min-width: 0; }
+.tarjeta-ingreso h2 { overflow-wrap: anywhere; }
+@media (max-width: 575.98px) { .foto-tarjeta { width: 76px; height: 76px; } .foto-tarjeta.sin-foto { font-size: 2rem; } .tarjeta-ingreso h2 { font-size: 1.35rem; } }
+.ingreso-form input[type=text] { font-size: 1.4rem; padding: .8rem 1rem; }
+th { white-space: nowrap; }
+
+/* Registros anulados: se muestran tachados pero no se borran */
+.anulado td { text-decoration: line-through; color: #8a8f94; background: #f6f6f6; }
+.anulado td.sin-tachar { text-decoration: none; }
+
+/* Lista de socios para elegir (tarea I). Una tarjeta por socio; en celular se apilan sin salirse de la pantalla. */
+.selector-fila { box-sizing: border-box; display: flex; align-items: center; gap: .75rem; width: 100%; text-align: left; padding: .6rem .8rem;
+                 margin: 0 0 .5rem; background: #fff; color: inherit; text-decoration: none; cursor: pointer;
+                 border: 1px solid #dee2e6; border-left: .35rem solid #adb5bd; border-radius: .5rem; }
+.selector-fila:hover, .selector-fila:focus-visible { background: #f1f3f5; color: inherit; }
+.selector-fila.elegido { outline: 2px solid #212529; }
+.selector-fila.estado-vigente { border-left-color: #198754; }
+.selector-fila.estado-por_vencer { border-left-color: #ffc107; }
+.selector-fila.estado-vencida { border-left-color: #dc3545; }
+.selector-form { margin: 0; }
+.selector-datos { display: flex; flex-direction: column; min-width: 0; flex: 1 1 8rem; }
+.selector-nombre { font-weight: 600; overflow-wrap: anywhere; }
+.selector-meta { color: #6c757d; font-size: .875rem; overflow-wrap: anywhere; }
+.selector-estado { flex-shrink: 0; }
+.sin-foto-mini { width: 36px; height: 36px; border-radius: 50%; background: #dee2e6; color: #6c757d; flex-shrink: 0;
+                 display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.foto-mini { flex-shrink: 0; }
+@media (max-width: 575.98px) { .selector-fila { flex-wrap: wrap; } .selector-estado { margin-left: calc(36px + .75rem); } }

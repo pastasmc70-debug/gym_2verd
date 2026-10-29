@@ -1,0 +1,12 @@
+{% extends "kiosco/base.html" %}
+{% block contenido %}
+<meta http-equiv="refresh" content="5;url={{ url_for('kiosco.pantalla') }}">
+<div class="resultado {{ 'ok' if r.ok else 'no' }}" data-volver="{{ url_for('kiosco.pantalla') }}" data-ok="{{ 1 if r.ok else 0 }}"
+     data-sonido="{{ 1 if sonido else 0 }}">
+  {% if r.foto_url %}<img class="foto" src="{{ r.foto_url }}" alt="">{% endif %}
+  {% if r.nombre %}<div class="nombre">{{ r.nombre }}</div>{% endif %}
+  {% if r.estado %}<div class="estado">{{ r.estado }}</div>{% endif %}
+  {% if r.dias %}<div class="dias">{{ r.dias }}</div>{% endif %}
+  <div class="mensaje">{{ r.mensaje }}</div>
+</div>
+{% endblock %}

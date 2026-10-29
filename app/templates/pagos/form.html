@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, csrf, badge_membresia %}
+{% block titulo %}Registrar pago{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Registrar pago</h1>
+<p class="text-muted">Socio: <strong>{{ socio.nombre }}</strong> (DNI {{ socio.dni }})</p>
+
+{% if socio.estado == 'baja' %}
+  <div class="alert alert-warning">Este socio está dado de baja. <a href="{{ url_for('socios.editar', socio_id=socio.id) }}">Reactivalo</a> para poder registrarle un pago.</div>
+{% elif not actual %}
+  <div class="alert alert-warning">Este socio todavía no tiene un plan. <a href="{{ url_for('membresias.asignar', socio_id=socio.id) }}">Asignale uno</a> antes de registrar el pago.</div>
+{% else %}
+  <div class="alert alert-info">
+    Plan <strong>{{ actual.plan_nombre }}</strong> ({{ actual.precio_centavos|pesos }}, {{ actual.duracion_dias }} días).
+    Vence el <strong>{{ socio.fecha_vencimiento|fecha }}</strong> {{ badge_membresia(socio.estado_membresia, socio.dias_restantes) }}.<br>
+    {% if estado.saldo_a_favor_centavos > 0 %}
+      <strong>Saldo a favor: {{ estado.saldo_a_favor_centavos|pesos }}.</strong> Se descuenta del próximo pago.<br>
+    {% endif %}
+    {% if estado.saldo_pendiente_centavos > 0 %}
+      <strong>Saldo pendiente: {{ estado.saldo_pendiente_centavos|pesos }}.</strong>
+      {% if estado.periodos_completados == 0 %}Todavía no se completó el pago del período inicial.{% else %}Hay un pago parcial a completar.{% endif %}
+      Mientras no se complete, la membresía no se extiende.
+    {% elif estado.periodos_completados == 0 %}
+      Es el primer pago de este plan: cubre el período inicial, así que el vencimiento no cambia.
+    {% else %}
+      Un pago completo suma {{ actual.duracion_dias }} días: {% if socio.estado_membresia == VENCIDA %}se cuentan desde la fecha del pago{% else %}se agregan al final de la membresía actual{% endif %}.
+    {% endif %}
+  </div>
+
+  <div class="card shadow-sm"><div class="card-body">
+    <form method="post" novalidate id="form-pago">
+      {{ csrf() }}
+      <input type="hidden" name="socio_id" value="{{ socio.id }}">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label" for="periodos">Cuántos períodos paga</label>
+          <select class="form-select {{ 'is-invalid' if errores.get('periodos') }}" id="periodos" name="periodos">
+            {% for o in opciones %}
+              <option value="{{ o.valor }}" data-monto="{{ o.monto_centavos|monto_form }}" data-descuento="{{ o.descuento_centavos|pesos if o.descuento_centavos else '' }}"
+                      {{ 'selected' if (valores.get('periodos') or '1') == o.valor }}>{{ o.etiqueta }}{% if o.descuento_centavos %} · con descuento{% endif %}</option>
+            {% endfor %}
+          </select>
+          {% if errores.get('periodos') %}<div class="invalid-feedback">{{ errores['periodos'] }}</div>{% endif %}
+          <div class="form-text" id="ayuda-periodos">El monto se calcula solo (precio del plan × períodos) y lo podés editar.</div>
+        </div>
+        <div class="col-md-6">{{ campo('monto', 'Monto (ARS)', valores, errores, requerido=True, atributos='inputmode="decimal"') }}</div>
+        <div class="col-md-6">{{ campo('fecha', 'Fecha del pago', valores, errores, tipo='date', requerido=True) }}</div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label" for="metodo">Método de pago <span class="text-danger">*</span></label>
+          <select class="form-select {{ 'is-invalid' if errores.get('metodo') }}" id="metodo" name="metodo" required>
+            {% for m in METODOS_PAGO %}<option value="{{ m }}" {{ 'selected' if valores.get('metodo') == m }}>{{ m|capitalize }}</option>{% endfor %}
+          </select>
+          {% if errores.get('metodo') %}<div class="invalid-feedback">{{ errores['metodo'] }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">{{ campo('nota', 'Nota (opcional)', valores, errores) }}</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-dark" type="submit">Registrar pago</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Cancelar</a>
+      </div>
+    </form>
+  </div></div>
+  <script src="{{ url_for('static', filename='js/pagos.js') }}" defer></script>
+{% endif %}
+{% endblock %}

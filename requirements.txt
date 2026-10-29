@@ -1,0 +1,9 @@
+Flask==3.1.3
+Werkzeug==3.1.9
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+itsdangerous==2.2.0
+click==8.5.0
+blinker==1.9.0
+# En Windows Python no trae la base de zonas horarias; en Linux/macOS no hace falta.
+tzdata==2025.2; sys_platform == "win32"

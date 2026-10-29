@@ -1,0 +1,7 @@
+{% from "socios/_selector_macros.html" import filas, pie with context %}
+{% if sel.socios %}{{ filas(sel) }}{% else %}
+  <div class="selector-vacio text-muted py-3">
+    {% if sel.q %}No encontramos ningún socio con «{{ sel.q }}».{% else %}Todavía no hay socios cargados.{% endif %}
+  </div>
+{% endif %}
+{{ pie(sel) }}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import campo, csrf %}
+{% block titulo %}{{ 'Editar socio' if socio else 'Nuevo socio' }}{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">{{ 'Editar socio' if socio else 'Nuevo socio' }}</h1>
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {{ csrf() }}
+    <div class="row">
+      <div class="col-md-6">{{ campo('nombre', 'Nombre y apellido', valores, errores, requerido=True) }}</div>
+      <div class="col-md-6">{{ campo('dni', 'DNI', valores, errores, requerido=True, ayuda='Con o sin puntos. Tiene que ser único.', atributos='inputmode="numeric"') }}</div>
+      <div class="col-md-6">{{ campo('telefono', 'Teléfono (WhatsApp)', valores, errores, tipo='tel', requerido=True, ayuda='Mejor con código de área, por ejemplo 11 5555-1234.') }}</div>
+      <div class="col-md-6">{{ campo('email', 'Email', valores, errores, tipo='email') }}</div>
+      <div class="col-md-6">{{ campo('fecha_alta', 'Fecha de alta', valores, errores, tipo='date', requerido=True) }}</div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label" for="estado">Estado</label>
+        <select class="form-select {{ 'is-invalid' if errores.get('estado') }}" id="estado" name="estado">
+          {% for e in ESTADOS_SOCIO %}<option value="{{ e }}" {{ 'selected' if (valores.get('estado') or 'activo') == e }}>{{ e|capitalize }}</option>{% endfor %}
+        </select>
+        {% if errores.get('estado') %}<div class="invalid-feedback">{{ errores['estado'] }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="foto">Foto (opcional)</label>
+      {% if socio and socio.foto %}
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <img class="foto-socio" src="{{ url_for('socios.foto', nombre=socio.foto) }}" alt="Foto de {{ socio.nombre }}">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="quitar_foto" name="quitar_foto" value="1">
+            <label class="form-check-label" for="quitar_foto">Quitar la foto actual</label>
+          </div>
+        </div>
+      {% endif %}
+      <input class="form-control {{ 'is-invalid' if errores.get('foto') }}" type="file" id="foto" name="foto" accept="image/jpeg,image/png,image/webp">
+      {% if errores.get('foto') %}<div class="invalid-feedback">{{ errores['foto'] }}</div>{% endif %}
+      <div class="form-text">JPG, PNG o WEBP, hasta 3 MB.</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="notas">Notas</label>
+      <textarea class="form-control {{ 'is-invalid' if errores.get('notas') }}" id="notas" name="notas" rows="3">{{ valores.get('notas') or '' }}</textarea>
+      {% if errores.get('notas') %}<div class="invalid-feedback">{{ errores['notas'] }}</div>{% endif %}
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-dark" type="submit">Guardar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) if socio else url_for('socios.lista') }}">Cancelar</a>
+    </div>
+  </form>
+</div></div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% from "_macros.html" import badge_membresia %}
+
+{# Contenido de una fila: foto chica, nombre, DNI, plan y estado con color. #}
+{% macro contenido(s) %}
+  {% if s.foto %}<img class="foto-mini" loading="lazy" src="{{ url_for('socios.foto', nombre=s.foto) }}" alt="">
+  {% else %}<span class="sin-foto-mini" aria-hidden="true">{{ s.nombre[0]|upper }}</span>{% endif %}
+  <span class="selector-datos">
+    <span class="selector-nombre">{{ s.nombre }}</span>
+    <span class="selector-meta">DNI {{ s.dni }} · {{ s.plan_nombre or 'Sin plan' }}{% if s.estado != 'activo' %} · <span class="badge text-bg-secondary">{{ s.estado|capitalize }}</span>{% endif %}</span>
+  </span>
+  <span class="selector-estado">{{ badge_membresia(s.estado_membresia, s.dias_restantes) }}</span>
+{% endmacro %}
+
+{% macro filas(sel) %}
+  {% for s in sel.socios %}
+    {% set clase = 'selector-fila estado-' ~ s.estado_membresia %}
+    {% if sel.destino == 'pago' %}
+      <a class="{{ clase }}" href="{{ url_for('pagos.nuevo', socio_id=s.id) }}">{{ contenido(s) }}</a>
+    {% elif sel.destino == 'membresia' %}
+      <a class="{{ clase }}" href="{{ url_for('membresias.asignar', socio_id=s.id) }}">{{ contenido(s) }}</a>
+    {% elif sel.destino == 'ingreso' %}
+      <form method="post" action="{{ url_for('asistencia.ingreso') }}" class="selector-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="socio_id" value="{{ s.id }}">
+        <button class="{{ clase }}" type="submit">{{ contenido(s) }}</button>
+      </form>
+    {% else %}
+      <button class="{{ clase }}" type="button" data-elegir-dni="{{ s.dni }}" data-nombre="{{ s.nombre }}">{{ contenido(s) }}</button>
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+{% macro pie(sel) %}
+  {% if sel.total %}
+  <div class="selector-pie d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
+    <span>Mostrando {{ sel.mostrados }} de {{ sel.total }} socio{{ 's' if sel.total != 1 }}{% if sel.q %} para «{{ sel.q }}»{% endif %}</span>
+    <span class="d-flex gap-2">
+      {% if sel.pagina > 1 %}<a class="btn btn-outline-secondary btn-sm" href="{{ sel.base_url }}?{{ {'q': sel.q, 'orden': sel.orden, 'pagina': sel.pagina - 1}|urlencode }}">← Anteriores</a>{% endif %}
+      {% if sel.hay_mas %}<a class="btn btn-outline-dark btn-sm" data-mas data-pagina="{{ sel.pagina + 1 }}" href="{{ sel.base_url }}?{{ {'q': sel.q, 'orden': sel.orden, 'pagina': sel.pagina + 1}|urlencode }}">Mostrar más</a>{% endif %}
+    </span>
+  </div>
+  {% endif %}
+{% endmacro %}

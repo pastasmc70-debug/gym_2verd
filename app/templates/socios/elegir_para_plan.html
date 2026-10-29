@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Asignar o renovar plan{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Asignar o renovar plan</h1>
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <form method="get" class="row g-2">
+    <div class="col-md-9"><input class="form-control form-control-lg" id="q" name="q" value="{{ q }}" placeholder="DNI o nombre del socio" autocomplete="off" autofocus></div>
+    <div class="col-md-3 d-grid"><button class="btn btn-dark btn-lg" type="submit">Buscar</button></div>
+  </form>
+</div></div>
+{% set entrada = '#q' %}
+{% include "socios/_selector.html" %}
+{% endblock %}

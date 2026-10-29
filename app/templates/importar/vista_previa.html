@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Vista previa de la importación{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Vista previa de la importación</h1>
+<p class="text-muted">Archivo: {{ nombre_archivo }}. Todavía no se guardó nada.</p>
+
+{% if analisis.problema_general %}
+  <div class="alert alert-danger">{{ analisis.problema_general }}</div>
+  <a class="btn btn-outline-dark" href="{{ url_for('importar.subir') }}">Probar con otro archivo</a>
+{% else %}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4"><div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Filas leídas</div><div class="h3 mb-0">{{ analisis.total_filas }}</div></div></div></div>
+    <div class="col-sm-4"><div class="card shadow-sm border-success"><div class="card-body">
+      <div class="text-muted small">Se pueden importar</div><div class="h3 mb-0 text-success">{{ analisis.validas|length }}</div></div></div></div>
+    <div class="col-sm-4"><div class="card shadow-sm {{ 'border-danger' if analisis.errores }}"><div class="card-body">
+      <div class="text-muted small">Con errores (se omiten)</div><div class="h3 mb-0 {{ 'text-danger' if analisis.errores }}">{{ analisis.errores|length }}</div></div></div></div>
+  </div>
+
+  {% if analisis.errores %}
+  <h2 class="h5">Errores</h2>
+  <div class="card shadow-sm mb-4"><div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th>Línea</th><th>Nombre</th><th>DNI</th><th>Qué hay que corregir</th></tr></thead>
+      <tbody>
+      {% for e in analisis.errores %}
+        <tr><td>{{ e.linea }}</td><td>{{ e.nombre }}</td><td>{{ e.dni }}</td><td class="text-danger">{{ e.mensajes|join(' · ') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+  <p class="small text-muted">Podés corregir el archivo y subirlo de nuevo, o importar solo las filas válidas.</p>
+  {% endif %}
+
+  {% if analisis.validas %}
+  <h2 class="h5">Socios que se van a importar{% if analisis.validas|length > 50 %} <span class="text-muted fs-6">(primeros 50)</span>{% endif %}</h2>
+  <div class="card shadow-sm mb-4"><div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th>Línea</th><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Email</th><th>Alta</th><th>Estado</th></tr></thead>
+      <tbody>
+      {% for s in analisis.validas[:50] %}
+        <tr><td>{{ analisis.lineas_validas[loop.index0] }}</td><td>{{ s.nombre }}</td><td>{{ s.dni }}</td><td>{{ s.telefono }}</td>
+            <td>{{ s.email or '' }}</td><td>{{ s.fecha_alta|fecha }}</td><td>{{ s.estado|capitalize }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+  {% endif %}
+
+  <div class="d-flex gap-2">
+    {% if analisis.puede_confirmar %}
+    <form method="post" action="{{ url_for('importar.confirmar') }}">
+      {{ csrf() }}
+      <input type="hidden" name="token" value="{{ token }}">
+      <button class="btn btn-dark" type="submit">Importar {{ analisis.validas|length }} socio{{ 's' if analisis.validas|length != 1 }}</button>
+    </form>
+    {% else %}
+      <div class="alert alert-danger mb-0">No hay ninguna fila válida para importar.</div>
+    {% endif %}
+    <a class="btn btn-outline-secondary" href="{{ url_for('importar.subir') }}">Cancelar</a>
+  </div>
+{% endif %}
+{% endblock %}

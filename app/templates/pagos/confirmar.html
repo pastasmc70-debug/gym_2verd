@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Confirmar pago{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Confirmar pago</h1>
+<p class="text-muted">Socio: <strong>{{ socio.nombre }}</strong> (DNI {{ socio.dni }}) · Plan <strong>{{ actual.plan_nombre }}</strong> ({{ actual.precio_centavos|pesos }} por período)</p>
+
+{% if tipo == 'pago_parcial' %}
+  <div class="alert alert-warning border-warning" role="alert">
+    <h2 class="h5 mb-2">Este pago es menor a lo que falta</h2>
+    Ingresaste <strong>{{ monto_centavos|pesos }}</strong> y para completar el período faltan
+    <strong>{{ datos.faltante_centavos|pesos }}</strong>. Si lo confirmás, se registra como <strong>pago parcial</strong>:
+    <strong>no extiende la membresía</strong> hasta que lo pagado complete el precio del período, y el socio queda con un saldo pendiente de
+    {{ (datos.faltante_centavos - monto_centavos)|pesos }}.
+    <div class="fw-semibold mt-2">Falta {{ vista.faltante_proximo_centavos|pesos }} para el próximo período.</div>
+  </div>
+{% else %}
+  <div class="alert alert-warning border-warning" role="alert">
+    <h2 class="h5 mb-2">El monto no es un múltiplo exacto del precio</h2>
+    <div class="fs-5">Esto cubre <strong>{{ vista.periodos_cubiertos }} {{ 'período' if vista.periodos_cubiertos == 1 else 'períodos' }}</strong>
+      y sobra <strong>{{ vista.sobrante_centavos|pesos }}</strong> a favor del socio.</div>
+    <div class="mt-1">Con ese saldo a favor, faltan {{ vista.faltante_proximo_centavos|pesos }} para completar el período siguiente.</div>
+  </div>
+{% endif %}
+
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <h2 class="h6">Qué va a pasar si confirmás</h2>
+  <dl class="row mb-0">
+    <dt class="col-sm-5">Monto que se cobra</dt><dd class="col-sm-7">{{ monto_centavos|pesos }} ({{ valores.get('metodo', '')|capitalize }})</dd>
+    {% if vista.descuento_centavos %}
+      <dt class="col-sm-5">Descuento por pago anual</dt><dd class="col-sm-7">{{ vista.descuento_centavos|pesos }}</dd>
+    {% endif %}
+    <dt class="col-sm-5">Períodos que cubre</dt><dd class="col-sm-7">{{ vista.periodos_cubiertos }}</dd>
+    <dt class="col-sm-5">Vencimiento actual</dt><dd class="col-sm-7">{{ vista.vencimiento_anterior|fecha }}</dd>
+    <dt class="col-sm-5">Vencimiento nuevo</dt><dd class="col-sm-7">{{ vista.vencimiento_nuevo|fecha }}{% if vista.vencimiento_nuevo == vista.vencimiento_anterior %} <span class="text-muted">(no cambia)</span>{% endif %}</dd>
+    {% if vista.saldo_a_favor_centavos %}
+      <dt class="col-sm-5">Saldo a favor</dt><dd class="col-sm-7">{{ vista.saldo_a_favor_centavos|pesos }}</dd>
+    {% endif %}
+    {% if vista.saldo_pendiente_centavos %}
+      <dt class="col-sm-5">Saldo pendiente</dt><dd class="col-sm-7">{{ vista.saldo_pendiente_centavos|pesos }}</dd>
+    {% endif %}
+  </dl>
+</div></div>
+
+<form method="post" novalidate>
+  {{ csrf() }}
+  <input type="hidden" name="socio_id" value="{{ socio.id }}">
+  {% for campo in ('monto', 'fecha', 'metodo', 'nota', 'periodos') %}
+    <input type="hidden" name="{{ campo }}" value="{{ valores.get(campo) or '' }}">
+  {% endfor %}
+  <input type="hidden" name="{{ 'confirmar_parcial' if tipo == 'pago_parcial' else 'confirmar' }}" value="1">
+  <div class="d-flex flex-wrap gap-2">
+    {% if tipo == 'pago_parcial' %}
+      <button class="btn btn-warning" type="submit">Confirmar pago parcial</button>
+    {% else %}
+      <button class="btn btn-dark" type="submit">Confirmar pago de {{ monto_centavos|pesos }}</button>
+    {% endif %}
+    <button class="btn btn-outline-secondary" type="submit" name="corregir" value="1">Volver y corregir el monto</button>
+    <a class="btn btn-link" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, clases %}
+{% block titulo %}Asignar plan{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Asignar plan</h1>
+<p class="text-muted">Socio: <strong>{{ socio.nombre }}</strong> (DNI {{ socio.dni }})</p>
+
+{% if not planes %}
+  <div class="alert alert-warning">No hay planes activos para asignar.{% if es_admin %} <a href="{{ url_for('planes.lista') }}">Creá uno o activá uno existente</a>.{% else %} Pedile al administrador que cree o active un plan.{% endif %}</div>
+{% else %}
+<div class="card shadow-sm"><div class="card-body">
+  <form method="post" novalidate>
+    {{ csrf() }}
+    <div class="mb-3">
+      <label class="form-label" for="plan_id">Plan <span class="text-danger">*</span></label>
+      <select class="form-select" id="plan_id" name="plan_id" required>
+        <option value="">Elegí un plan…</option>
+        {% for p in planes %}
+          <option value="{{ p.id }}" {{ 'selected' if valores.get('plan_id')|string == p.id|string }}>
+            {{ p.nombre }} — {{ p.precio_centavos|pesos }} · {{ p.duracion_dias }} días · {{ clases(p.clases_por_semana) }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="fecha_inicio">Fecha de inicio <span class="text-danger">*</span></label>
+      <input class="form-control" type="date" id="fecha_inicio" name="fecha_inicio" value="{{ valores.get('fecha_inicio') or '' }}" required>
+      <div class="form-text">El vencimiento se calcula sumando los días del plan.</div>
+    </div>
+    {% if a_acumular %}
+      <div class="alert alert-warning" role="alert">
+        <h2 class="h6">{{ socio.nombre }} todavía tiene {{ a_acumular }} día{{ 's' if a_acumular != 1 }} vigente{{ 's' if a_acumular != 1 }} en su plan actual
+          ({{ socio.plan_nombre }}, vence el {{ socio.fecha_vencimiento|fecha }}).</h2>
+        <p class="mb-0">¿Querés sumar esos días al plan nuevo? Si no los acumulás, el plan nuevo reemplaza al actual y <strong>esos días se pierden</strong>.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-dark" type="submit" name="acumular" value="1">Asignar y acumular {{ a_acumular }} día{{ 's' if a_acumular != 1 }}</button>
+        <button class="btn btn-outline-danger" type="submit" name="acumular" value="0">Asignar sin acumular</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Cancelar</a>
+      </div>
+    {% else %}
+    <div class="d-flex gap-2">
+      <button class="btn btn-dark" type="submit">Asignar plan</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Cancelar</a>
+    </div>
+    {% endif %}
+  </form>
+</div></div>
+{% endif %}
+{% endblock %}

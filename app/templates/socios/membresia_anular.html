@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Anular membresía{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Anular membresía</h1>
+<p class="text-muted">La membresía no se borra: queda marcada como anulada, con la fecha, el motivo y quién la anuló.</p>
+
+{% if m.anulada %}
+  <div class="alert alert-secondary">Esta membresía ya fue anulada el {{ m.anulada_en[:10]|fecha }} por {{ m.anulada_por }}. Motivo: {{ m.anulada_motivo }}</div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Volver al socio</a>
+{% else %}
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Socio</dt><dd class="col-sm-9">{{ socio.nombre }} (DNI {{ socio.dni }})</dd>
+    <dt class="col-sm-3">Plan</dt><dd class="col-sm-9">{{ m.plan_nombre }}</dd>
+    <dt class="col-sm-3">Período</dt><dd class="col-sm-9">desde {{ m.fecha_inicio|fecha }}, vence {{ m.fecha_vencimiento|fecha }}</dd>
+  </dl>
+</div></div>
+{% if tiene_pagos %}
+  <div class="alert alert-danger">Esta membresía tiene pagos registrados. Primero anulá esos pagos desde la ficha del socio y después podés anularla.</div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Volver al socio</a>
+{% else %}
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post" class="card shadow-sm"><div class="card-body">
+  {{ csrf() }}
+  <div class="mb-3">
+    <label class="form-label" for="motivo">Motivo de la anulación <span class="text-danger">*</span></label>
+    <textarea class="form-control" id="motivo" name="motivo" rows="2" maxlength="300" required>{{ motivo }}</textarea>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-danger" type="submit" onclick="return confirm('¿Seguro que querés anular esta membresía?');">Confirmar anulación</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=socio.id) }}">Cancelar</a>
+  </div>
+</div></form>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block titulo %}Caja diaria{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Caja diaria · {{ fecha|fecha }}</h1>
+  <form class="d-flex gap-2" method="get">
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('caja.diaria', fecha=ayer.isoformat()) }}">‹ Día anterior</a>
+    <input class="form-control form-control-sm" type="date" name="fecha" value="{{ fecha.isoformat() }}" max="{{ hoy.isoformat() }}">
+    <button class="btn btn-dark btn-sm" type="submit">Ver</button>
+    {% if manana %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('caja.diaria', fecha=manana.isoformat()) }}">Día siguiente ›</a>{% endif %}
+  </form>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card shadow-sm h-100"><div class="card-body">
+    <div class="text-muted small">Cuotas cobradas</div>
+    <div class="h2 mb-2">{{ cuotas.total_centavos|pesos }}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for metodo, monto in cuotas.por_metodo.items() %}<li>{{ metodo|capitalize }}: {{ monto|pesos }}</li>{% endfor %}
+    </ul>
+  </div></div></div>
+  {% if tienda %}
+  <div class="col-md-4"><div class="card shadow-sm h-100"><div class="card-body">
+    <div class="text-muted small">Tienda (aparte de las cuotas)</div>
+    <div class="h2 mb-2">{{ tienda.total_centavos|pesos }}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for metodo, monto in tienda.por_metodo.items() %}<li>{{ metodo|capitalize }}: {{ monto|pesos }}</li>{% endfor %}
+    </ul>
+  </div></div></div>
+  <div class="col-md-4"><div class="card shadow-sm h-100 border-dark"><div class="card-body">
+    <div class="text-muted small">Total del día (cuotas + tienda)</div>
+    <div class="h2 mb-0">{{ (cuotas.total_centavos + tienda.total_centavos)|pesos }}</div>
+  </div></div></div>
+  {% endif %}
+</div>
+
+<h2 class="h5">Pagos de cuotas del día</h2>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table table-sm align-middle mb-0">
+    <thead class="table-light"><tr><th>Socio</th><th>Monto</th><th>Método</th><th>Cargó</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for p in cuotas.pagos %}
+      <tr class="{{ 'anulado' if p.anulado }}">
+        <td><a class="text-decoration-none" href="{{ url_for('socios.detalle', socio_id=p.socio_id) }}">{{ p.socio_nombre }}</a></td>
+        <td>{{ p.monto_centavos|pesos }}</td><td>{{ p.metodo|capitalize }}</td><td>{{ p.cargado_por or '—' }}</td>
+        <td class="sin-tachar">{% if p.anulado %}<span class="badge text-bg-secondary" title="{{ p.anulado_motivo }}">Anulado</span>{% elif p.es_parcial %}<span class="badge text-bg-warning">Parcial</span>{% else %}<span class="badge text-bg-success">Vigente</span>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-4">No hubo cobros de cuotas este día.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% if cuotas.anulados %}<p class="small text-muted mt-2">Los pagos anulados figuran tachados y no suman en los totales.</p>{% endif %}
+{% if tienda %}
+<h2 class="h5 mt-4">Ventas de la tienda del día</h2>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table table-sm align-middle mb-0">
+    <thead class="table-light"><tr><th>Hora</th><th>Socio</th><th>Unidades</th><th>Total</th><th>Método</th><th>Cargó</th><th>Estado</th></tr></thead>
+    <tbody>
+    {% for v in tienda.ventas %}
+      <tr class="{{ 'anulado' if v.anulada }}">
+        <td>{{ v.hora[:5] }}</td><td>{{ v.socio_nombre or 'Mostrador' }}</td><td>{{ v.unidades }}</td>
+        <td>{{ v.total_centavos|pesos }}</td><td>{{ v.metodo|capitalize }}</td><td>{{ v.cargada_por or '—' }}</td>
+        <td class="sin-tachar">{% if v.anulada %}<span class="badge text-bg-secondary" title="{{ v.anulada_motivo }}">Anulada</span>{% else %}<span class="badge text-bg-success">Vigente</span>{% endif %}
+          <a class="ms-1" href="{{ url_for('tienda.detalle_venta', venta_id=v.id) }}">Ver</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="text-center text-muted py-4">No hubo ventas de la tienda este día.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endif %}
+{% endblock %}

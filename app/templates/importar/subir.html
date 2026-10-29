@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Importar socios{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-3">Importar socios desde un CSV</h1>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {{ csrf() }}
+      <div class="mb-3">
+        <label class="form-label" for="archivo">Archivo CSV <span class="text-danger">*</span></label>
+        <input class="form-control" type="file" id="archivo" name="archivo" accept=".csv,text/csv" required>
+        <div class="form-text">Máximo 1 MB y {{ 2000 }} filas. Antes de importar vas a ver una vista previa y los errores, y no se guarda nada hasta que confirmes.</div>
+      </div>
+      <button class="btn btn-dark" type="submit">Ver vista previa</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('exportar.pagina') }}">Volver</a>
+    </form>
+  </div></div></div>
+  <div class="col-lg-6"><div class="card shadow-sm"><div class="card-body">
+    <h2 class="h6">Cómo tiene que ser el archivo</h2>
+    <p class="small mb-2">La primera fila es el encabezado. Separador «;» o «,» (el que use Excel). Columnas:</p>
+    <ul class="small mb-2">
+      <li><strong>nombre</strong>, <strong>dni</strong> y <strong>telefono</strong>: obligatorias.</li>
+      <li><strong>email</strong>, <strong>fecha_alta</strong> (dd/mm/aaaa; si falta se usa hoy), <strong>estado</strong> (activo, pausado o baja; si falta, activo) y <strong>notas</strong>: opcionales.</li>
+    </ul>
+    <p class="small text-muted mb-0">Los socios importados quedan sin plan: después se les asigna. Un DNI que ya existe, o que se repite en el archivo, se marca como error y esa fila no se importa.</p>
+  </div></div></div>
+</div>
+<h2 class="h5 mt-4">Últimas importaciones</h2>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table table-sm align-middle mb-0">
+    <thead class="table-light"><tr><th>Fecha</th><th>Quién</th><th>Importados</th><th>Omitidos</th></tr></thead>
+    <tbody>
+    {% for h in historial %}
+      <tr><td>{{ h.creada_en[:10]|fecha }} {{ h.creada_en[11:16] }}</td><td>{{ h.usuario or '—' }}</td><td>{{ h.importadas }}</td><td>{{ h.omitidas }}</td></tr>
+    {% else %}
+      <tr><td colspan="4" class="text-center text-muted py-3">Todavía no se importó nada.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}
+

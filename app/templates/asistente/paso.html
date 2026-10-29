@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf, campo %}
+{% block titulo %}Primera configuración{% endblock %}
+{% block contenido %}
+<div class="row justify-content-center mt-4">
+  <div class="col-lg-7">
+    <p class="text-muted mb-1">Primera configuración · Paso {{ n }} de {{ pasos }}</p>
+    <div class="progress mb-4" role="progressbar" aria-label="Avance" aria-valuenow="{{ n }}" aria-valuemin="1" aria-valuemax="{{ pasos }}" style="height: 6px">
+      <div class="progress-bar bg-dark" style="width: {{ (n * 100 / pasos)|int }}%"></div>
+    </div>
+    <div class="card shadow-sm"><div class="card-body p-4">
+      <form method="post" novalidate>
+        {{ csrf() }}
+        {% if n == 1 %}
+          <h1 class="h4">¡Bienvenido! Empecemos por el nombre</h1>
+          <p class="text-muted">Aparece en pantalla y en los mensajes de WhatsApp a los socios.</p>
+          {{ campo('nombre', 'Nombre del gimnasio', valores, errores, requerido=True, atributos='maxlength="60" autofocus') }}
+        {% elif n == 2 %}
+          <h1 class="h4">Usuario y clave del administrador</h1>
+          <p class="text-muted">Con esta cuenta se administra todo el sistema. Anotala en un lugar seguro: la clave no se puede ver después.</p>
+          {{ campo('usuario', 'Usuario', valores, errores, requerido=True, ayuda='De 3 a 30 caracteres: letras, números, punto, guion o guion bajo.', atributos='autocomplete="username" autofocus') }}
+          {{ campo('clave', 'Clave', {}, errores, tipo='password', requerido=True, ayuda='Mínimo ' ~ CLAVE_MIN ~ ' caracteres.', atributos='autocomplete="new-password"') }}
+          {{ campo('confirmacion', 'Repetí la clave', {}, errores, tipo='password', requerido=True, atributos='autocomplete="new-password"') }}
+        {% elif n == 3 %}
+          <h1 class="h4">Tus planes</h1>
+          <p class="text-muted">Cargá al menos uno, con su precio y su duración en días (un mes es 30). Después podés editarlos o agregar más desde Planes. Las filas vacías se ignoran.</p>
+          {% if errores.planes %}<div class="alert alert-danger">{{ errores.planes }}</div>{% endif %}
+          {% for i in filas %}
+            <div class="row g-2 mb-3">
+              <div class="col-12 col-md-5">
+                <label class="form-label small" for="p{{ i }}_nombre">Plan {{ i }}: nombre</label>
+                <input class="form-control {{ 'is-invalid' if errores.get('p%d_nombre'|format(i)) }}" id="p{{ i }}_nombre" name="p{{ i }}_nombre" maxlength="60" value="{{ valores.get('p%d_nombre'|format(i), '') }}">
+                {% if errores.get('p%d_nombre'|format(i)) %}<div class="invalid-feedback">{{ errores.get('p%d_nombre'|format(i)) }}</div>{% endif %}
+              </div>
+              <div class="col-7 col-md-4">
+                <label class="form-label small" for="p{{ i }}_precio">Precio ($)</label>
+                <input class="form-control {{ 'is-invalid' if errores.get('p%d_precio'|format(i)) }}" id="p{{ i }}_precio" name="p{{ i }}_precio" inputmode="decimal" value="{{ valores.get('p%d_precio'|format(i), '') }}">
+                {% if errores.get('p%d_precio'|format(i)) %}<div class="invalid-feedback">{{ errores.get('p%d_precio'|format(i)) }}</div>{% endif %}
+              </div>
+              <div class="col-5 col-md-3">
+                <label class="form-label small" for="p{{ i }}_duracion">Días</label>
+                <input class="form-control {{ 'is-invalid' if errores.get('p%d_duracion'|format(i)) }}" id="p{{ i }}_duracion" name="p{{ i }}_duracion" inputmode="numeric" value="{{ valores.get('p%d_duracion'|format(i), '') }}">
+                {% if errores.get('p%d_duracion'|format(i)) %}<div class="invalid-feedback">{{ errores.get('p%d_duracion'|format(i)) }}</div>{% endif %}
+              </div>
+            </div>
+          {% endfor %}
+          <p class="form-text">Los planes quedan con clases ilimitadas; el tope semanal se puede definir después al editar cada plan.</p>
+        {% else %}
+          <h1 class="h4">¿Vas a vender suplementos?</h1>
+          <p class="text-muted">La tienda agrega productos, stock y ventas de mostrador. Se puede cambiar después en Configuración.</p>
+          {% if errores.tienda %}<div class="alert alert-danger">{{ errores.tienda }}</div>{% endif %}
+          <div class="form-check mb-2"><input class="form-check-input" type="radio" name="tienda" id="tienda_si" value="1"><label class="form-check-label" for="tienda_si">Sí, activar la tienda</label></div>
+          <div class="form-check mb-3"><input class="form-check-input" type="radio" name="tienda" id="tienda_no" value="0"><label class="form-check-label" for="tienda_no">No, por ahora no</label></div>
+          <div class="alert alert-secondary small">
+            <strong>Resumen:</strong> {{ resumen.nombre }} · administrador «{{ resumen.usuario }}» ·
+            {{ resumen.planes|length }} plan{{ 'es' if resumen.planes|length != 1 }}.
+          </div>
+        {% endif %}
+        <div class="d-flex gap-2 mt-3">
+          {% if n > 1 %}<a class="btn btn-outline-secondary" href="{{ url_for('asistente.paso', n=n - 1) }}">Atrás</a>{% endif %}
+          <button class="btn btn-dark" type="submit">{{ 'Terminar' if n == pasos else 'Siguiente' }}</button>
+        </div>
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{# Campo de formulario con etiqueta y mensaje de error. #}
+{% macro campo(nombre, etiqueta, valores, errores, tipo='text', requerido=False, ayuda=None, atributos='') %}
+  <div class="mb-3">
+    <label class="form-label" for="{{ nombre }}">{{ etiqueta }}{% if requerido %} <span class="text-danger">*</span>{% endif %}</label>
+    <input class="form-control {{ 'is-invalid' if errores.get(nombre) }}" type="{{ tipo }}" id="{{ nombre }}"
+           name="{{ nombre }}" value="{{ valores.get(nombre) if valores.get(nombre) is not none else '' }}"
+           {{ 'required' if requerido }} {{ atributos|safe }}>
+    {% if errores.get(nombre) %}<div class="invalid-feedback">{{ errores[nombre] }}</div>{% endif %}
+    {% if ayuda %}<div class="form-text">{{ ayuda }}</div>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro badge_socio(estado) %}
+  {% set clase = {'activo': 'success', 'pausado': 'warning text-dark', 'baja': 'secondary'}[estado] %}
+  <span class="badge text-bg-{{ clase }}">{{ estado|capitalize }}</span>
+{% endmacro %}
+
+{% macro badge_membresia(estado, dias=None) %}
+  {% if estado == VIGENTE %}<span class="badge text-bg-success">Vigente</span>
+  {% elif estado == POR_VENCER %}<span class="badge text-bg-warning">Por vencer{% if dias is not none %} ({{ 'hoy' if dias == 0 else dias ~ ' d' }}){% endif %}</span>
+  {% elif estado == VENCIDA %}<span class="badge text-bg-danger">Vencida</span>
+  {% else %}<span class="badge text-bg-secondary">Sin plan</span>{% endif %}
+{% endmacro %}
+
+{% macro clases(plan_clases) %}{{ 'Ilimitadas' if plan_clases is none else plan_clases ~ ' por semana' }}{% endmacro %}

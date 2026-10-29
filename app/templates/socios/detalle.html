@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_socio, badge_membresia %}
+{% block titulo %}{{ socio.nombre }}{% endblock %}
+{% block contenido %}
+<div class="card shadow-sm mb-4"><div class="card-body">
+  <div class="d-flex flex-wrap gap-3 align-items-center">
+    {% if socio.foto %}
+      <img class="foto-socio" src="{{ url_for('socios.foto', nombre=socio.foto) }}" alt="Foto de {{ socio.nombre }}">
+    {% else %}
+      <div class="sin-foto">{{ socio.nombre[0]|upper }}</div>
+    {% endif %}
+    <div class="flex-grow-1">
+      <h1 class="h3 mb-1">{{ socio.nombre }} {{ badge_socio(socio.estado) }}</h1>
+      <div class="text-muted">DNI {{ socio.dni }} · {{ socio.telefono }}{% if socio.email %} · {{ socio.email }}{% endif %}</div>
+      <div class="text-muted small">Socio desde {{ socio.fecha_alta|fecha }}</div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-dark" href="{{ url_for('socios.editar', socio_id=socio.id) }}">Editar</a>
+      {% if whatsapp %}<a class="btn btn-success" href="{{ whatsapp }}" target="_blank" rel="noopener">Contactar por WhatsApp</a>{% endif %}
+    </div>
+  </div>
+  {% if socio.notas %}<hr><div class="small"><strong>Notas:</strong> {{ socio.notas }}</div>{% endif %}
+</div></div>
+
+{% if resultado_pago %}
+  {% set p = resultado_pago.pago %}{% set r = resultado_pago.resultado %}
+  <div class="card border-success shadow-sm mb-4" id="resultado-pago"><div class="card-body">
+    <h2 class="h5 text-success">Pago registrado: {{ p.monto_centavos|pesos }}</h2>
+    <p class="text-muted small mb-2">{{ p.fecha|fecha }} · {{ p.metodo|capitalize }}{% if p.cargado_por %} · cargó {{ p.cargado_por }}{% endif %}{% if p.descuento_centavos %} · incluye descuento por pago anual de {{ p.descuento_centavos|pesos }}{% endif %}</p>
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Vencimiento anterior</dt><dd class="col-sm-8">{{ r.vencimiento_anterior|fecha }}</dd>
+      <dt class="col-sm-4">Vencimiento nuevo</dt>
+      <dd class="col-sm-8"><strong>{{ r.vencimiento_nuevo|fecha }}</strong>{% if r.vencimiento_nuevo == r.vencimiento_anterior %} <span class="text-muted">(no cambia{% if r.cubrio_periodo_inicial %}: cubre el período inicial del plan{% endif %})</span>{% endif %}</dd>
+      <dt class="col-sm-4">Períodos cubiertos</dt><dd class="col-sm-8">{{ r.periodos_completados }}{% if r.es_parcial %} <span class="text-muted">(pago parcial: no completa ningún período)</span>{% endif %}</dd>
+      <dt class="col-sm-4">Saldo</dt>
+      <dd class="col-sm-8">
+        {% if r.saldo_a_favor_centavos %}<strong class="text-success">A favor: {{ r.saldo_a_favor_centavos|pesos }}</strong>
+        {% elif r.saldo_pendiente_centavos %}<strong class="text-danger">Pendiente: {{ r.saldo_pendiente_centavos|pesos }}</strong>
+        {% else %}Al día: sin saldo{% endif %}
+      </dd>
+    </dl>
+  </div></div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h5">Membresía</h2>
+      {% if socio.plan_nombre %}
+        <p class="mb-1"><strong>{{ socio.plan_nombre }}</strong> {{ badge_membresia(socio.estado_membresia, socio.dias_restantes) }}</p>
+        <p class="mb-3 text-muted">
+          Vence el {{ socio.fecha_vencimiento|fecha }}
+          {% if socio.dias_restantes is not none and socio.dias_restantes < 0 %}(hace {{ -socio.dias_restantes }} días)
+          {% elif socio.dias_restantes == 0 %}(hoy){% elif socio.dias_restantes is not none %}(en {{ socio.dias_restantes }} días){% endif %}
+        </p>
+      {% else %}
+        <p class="text-muted">Todavía no tiene un plan asignado.</p>
+      {% endif %}
+      {% if saldo %}<div class="alert alert-warning py-2"><strong>Saldo pendiente: {{ saldo|pesos }}</strong></div>{% endif %}
+      {% if saldo_a_favor %}<div class="alert alert-success py-2" id="saldo-a-favor"><strong>Saldo a favor: {{ saldo_a_favor|pesos }}</strong> <span class="small">(se descuenta del próximo pago)</span></div>{% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        {% if socio.estado != 'baja' %}
+          <a class="btn btn-outline-dark btn-sm" href="{{ url_for('membresias.asignar', socio_id=socio.id) }}">{{ 'Cambiar o asignar plan' if socio.plan_nombre else 'Asignar plan' }}</a>
+          {% if socio.plan_nombre %}<a class="btn btn-dark btn-sm" href="{{ url_for('pagos.nuevo', socio_id=socio.id) }}">Registrar pago</a>{% endif %}
+        {% endif %}
+      </div>
+      {% if membresias|length > 1 or (membresias and membresias[0].anulada) or (es_admin and membresias) %}
+        <hr><h3 class="h6">Historial de planes</h3>
+        <ul class="small mb-0">
+          {% for m in membresias %}
+            <li {% if m.anulada %}class="text-muted"{% endif %}>
+              {% if m.anulada %}<s>{% endif %}{{ m.plan_nombre }}: desde {{ m.fecha_inicio|fecha }}, vence {{ m.fecha_vencimiento|fecha }}{% if m.dias_extra %} (incluye {{ m.dias_extra }} días acumulados){% endif %}{% if m.anulada %}</s>
+                <span class="badge text-bg-secondary">Anulada</span>
+                <br><span class="small">{{ m.anulada_en[:10]|fecha }} · {{ m.anulada_por }} · {{ m.anulada_motivo }}</span>
+              {% elif es_admin and not m.pagos_activos %}
+                <a class="small text-danger" href="{{ url_for('membresias.anular', membresia_id=m.id) }}">Anular</a>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div></div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card shadow-sm mb-4"><div class="card-body">
+      <h2 class="h5">Historial de pagos</h2>
+      {% if pagos %}
+      <div class="table-responsive"><table class="table table-sm align-middle mb-0">
+        <thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Cubre hasta</th><th>Nota</th><th>Cargó</th><th></th></tr></thead>
+        <tbody>
+        {% for p in pagos %}
+          <tr class="{{ 'anulado' if p.anulado }}">
+              <td>{{ p.fecha|fecha }}</td>
+              <td>{{ p.monto_centavos|pesos }}
+                  {% if p.es_parcial and not p.anulado %}<span class="badge text-bg-warning sin-tachar">Parcial</span>{% endif %}
+                  {% if p.descuento_centavos %}<div class="small text-muted">con descuento anual de {{ p.descuento_centavos|pesos }}</div>{% endif %}</td>
+              <td>{{ p.metodo|capitalize }}</td>
+              <td>{{ p.vencimiento_nuevo|fecha if not p.anulado else '—' }}</td>
+              <td>{{ p.nota or '' }}</td>
+              <td>{{ p.cargado_por or '—' }}</td>
+              <td class="sin-tachar text-end">
+                {% if p.anulado %}
+                  <span class="badge text-bg-secondary">Anulado</span>
+                  <div class="small text-muted">{{ p.anulado_en[:10]|fecha }} · {{ p.anulado_por }}<br>{{ p.anulado_motivo }}</div>
+                {% elif es_admin %}
+                  <a class="btn btn-outline-danger btn-sm" href="{{ url_for('pagos.anular', pago_id=p.id) }}">Anular</a>
+                {% endif %}
+              </td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      {% else %}<p class="text-muted mb-0">Todavía no registró pagos.</p>{% endif %}
+    </div></div>
+
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h5">Últimas asistencias</h2>
+      {% if asistencias %}
+        <p class="mb-0">{% for a in asistencias %}<span class="badge text-bg-light border me-1">{{ a.fecha|fecha }} {{ a.hora[:5] }}</span>{% endfor %}</p>
+      {% else %}<p class="text-muted mb-0">Todavía no registró ingresos.</p>{% endif %}
+    </div></div>
+  </div>
+</div>
+{% endblock %}

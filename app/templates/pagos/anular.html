@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Anular pago{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Anular pago</h1>
+<p class="text-muted">El pago no se borra: queda marcado como anulado, con la fecha, el motivo y quién lo anuló.</p>
+
+{% if pago.anulado %}
+  <div class="alert alert-secondary">Este pago ya fue anulado el {{ pago.anulado_en[:10]|fecha }} por {{ pago.anulado_por }}. Motivo: {{ pago.anulado_motivo }}</div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=pago.socio_id) }}">Volver al socio</a>
+{% else %}
+<div class="card shadow-sm mb-3"><div class="card-body">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Socio</dt><dd class="col-sm-9">{{ pago.socio_nombre }} (DNI {{ pago.socio_dni }})</dd>
+    <dt class="col-sm-3">Fecha</dt><dd class="col-sm-9">{{ pago.fecha|fecha }}</dd>
+    <dt class="col-sm-3">Monto</dt><dd class="col-sm-9">{{ pago.monto_centavos|pesos }} ({{ pago.metodo }}){% if pago.es_parcial %} · pago parcial{% endif %}</dd>
+    <dt class="col-sm-3">Plan</dt><dd class="col-sm-9">{{ pago.plan_nombre }}</dd>
+  </dl>
+</div></div>
+
+<div class="alert alert-warning">Al anularlo se recalcula el vencimiento de la membresía y el monto deja de contar en el panel, en la caja y en los totales.</div>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post" class="card shadow-sm"><div class="card-body">
+  {{ csrf() }}
+  <div class="mb-3">
+    <label class="form-label" for="motivo">Motivo de la anulación <span class="text-danger">*</span></label>
+    <textarea class="form-control {{ 'is-invalid' if error }}" id="motivo" name="motivo" rows="2" maxlength="300" required>{{ motivo }}</textarea>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-danger" type="submit" onclick="return confirm('¿Seguro que querés anular este pago? No se puede deshacer.');">Confirmar anulación</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('socios.detalle', socio_id=pago.socio_id) }}">Cancelar</a>
+  </div>
+</div></form>
+{% endif %}
+{% endblock %}

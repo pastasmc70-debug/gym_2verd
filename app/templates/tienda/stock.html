@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Stock{% endblock %}
+{% block contenido %}
+<h1 class="h3 mb-1">Stock de {{ producto.nombre }}{% if producto.marca %} ({{ producto.marca }}){% endif %}</h1>
+<p class="text-muted">Stock actual: <strong>{{ producto.stock }}</strong> · mínimo {{ producto.stock_minimo }}</p>
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><form method="post" action="{{ url_for('tienda.stock_operar', producto_id=producto.id, operacion='entrada') }}" class="card shadow-sm h-100"><div class="card-body">
+    {{ csrf() }}<h2 class="h6">Entrada de mercadería</h2>
+    {% if errores.entrada %}<div class="alert alert-danger">{{ errores.entrada }}</div>{% endif %}
+    <label class="form-label" for="cantidad">Cantidad que llegó <span class="text-danger">*</span></label>
+    <input class="form-control mb-2" id="cantidad" name="cantidad" type="number" min="1" step="1" required value="{{ form.get('cantidad', '') if errores.entrada }}">
+    <label class="form-label" for="motivo_e">Motivo <span class="text-danger">*</span></label>
+    <input class="form-control mb-3" id="motivo_e" name="motivo" maxlength="300" required placeholder="Ej: compra al proveedor" value="{{ form.get('motivo', '') if errores.entrada }}">
+    <button class="btn btn-dark" type="submit">Registrar entrada</button>
+  </div></form></div>
+  <div class="col-md-6"><form method="post" action="{{ url_for('tienda.stock_operar', producto_id=producto.id, operacion='ajuste') }}" class="card shadow-sm h-100"><div class="card-body">
+    {{ csrf() }}<h2 class="h6">Ajuste de inventario</h2>
+    {% if errores.ajuste %}<div class="alert alert-danger">{{ errores.ajuste }}</div>{% endif %}
+    <label class="form-label" for="stock_real">Stock real contado <span class="text-danger">*</span></label>
+    <input class="form-control mb-2" id="stock_real" name="stock_real" type="number" min="0" step="1" required value="{{ form.get('stock_real', '') if errores.ajuste }}">
+    <label class="form-label" for="motivo_a">Motivo <span class="text-danger">*</span></label>
+    <input class="form-control mb-3" id="motivo_a" name="motivo" maxlength="300" required placeholder="Ej: conteo del inventario, rotura" value="{{ form.get('motivo', '') if errores.ajuste }}">
+    <button class="btn btn-outline-dark" type="submit">Ajustar stock</button>
+  </div></form></div>
+</div>
+<h2 class="h5">Últimos movimientos</h2>
+<div class="card shadow-sm"><div class="table-responsive"><table class="table mb-0">
+  <thead class="table-light"><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Stock quedó</th><th>Motivo</th><th>Quién</th></tr></thead>
+  <tbody>{% for m in movimientos %}
+    <tr><td>{{ m.creado_en[:10]|fecha }} {{ m.creado_en[11:16] }}</td><td>{{ {'entrada': 'Entrada', 'ajuste': 'Ajuste', 'venta': 'Venta', 'anulacion_venta': 'Venta anulada'}[m.tipo] }}</td>
+    <td>{{ '%+d'|format(m.cantidad) }}</td><td>{{ m.stock_resultante }}</td><td>{{ m.motivo or '—' }}</td><td>{{ m.usuario or '—' }}</td></tr>
+  {% else %}<tr><td colspan="6" class="text-center text-muted py-3">Sin movimientos todavía.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+<a class="btn btn-outline-secondary mt-3" href="{{ url_for('tienda.productos') }}">Volver a productos</a>
+{% endblock %}

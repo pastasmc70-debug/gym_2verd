@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block titulo %}Usuarios{% endblock %}
+{% block contenido %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Usuarios de recepción</h1>
+  <a class="btn btn-dark" href="{{ url_for('usuarios.nuevo') }}">Nuevo usuario</a>
+</div>
+<p class="text-muted small">Cada pago, anulación, venta e ingreso queda con el nombre de quien lo hizo. Las cuentas no se borran: se desactivan, y sus registros siguen a su nombre. El administrador es <strong>{{ admin }}</strong>.</p>
+<div class="card shadow-sm"><div class="table-responsive">
+  <table class="table tabla-fija align-middle mb-0">
+    <thead class="table-light"><tr><th>Usuario</th><th>Estado</th><th>Creada</th><th>Creada por</th><th></th></tr></thead>
+    <tbody>
+    {% for c in cuentas %}
+      <tr>
+        <td class="fw-semibold">{{ c.usuario }}</td>
+        <td>{% if c.activo %}<span class="badge text-bg-success">Activa</span>{% else %}<span class="badge text-bg-secondary">Desactivada</span>{% endif %}</td>
+        <td>{{ c.creado_en[:10]|fecha }}</td>
+        <td>{{ c.creado_por or '—' }}</td>
+        <td class="text-end">
+          <a class="btn btn-outline-dark btn-sm" href="{{ url_for('usuarios.clave', usuario_id=c.id) }}">Cambiar clave</a>
+          <form class="d-inline" method="post" action="{{ url_for('usuarios.activar_o_desactivar', usuario_id=c.id, accion='desactivar' if c.activo else 'activar') }}">
+            {{ csrf() }}
+            <button class="btn btn-outline-secondary btn-sm" type="submit">{{ 'Desactivar' if c.activo else 'Activar' }}</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="text-center text-muted py-4">Todavía no hay cuentas de recepción. Creá la primera con «Nuevo usuario».</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}
